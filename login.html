@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <base href="/jinxiuai-prototype/">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>登录 — 锦绣AI</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={theme:{extend:{colors:{brand:{DEFAULT:'#1F4E79',light:'#2E75B6'},accent:'#10B981'}}}}</script>
+<style>body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft YaHei',sans-serif;}</style>
+</head>
+<body class="min-h-screen bg-gray-50 flex flex-col items-center pt-20 px-6 pb-12">
+<!-- 顶部导航栏：透明背景，无边框，5 菜单 + 登录注册 -->
+<!-- 顶部导航栏：透明背景，无边框，5 菜单 + 登录注册 -->
+<nav class="fixed top-0 w-full bg-transparent z-50">
+  <div class="max-w-6xl mx-auto px-6 h-14 flex items-center">
+    <a href="./index.html" class="flex items-center gap-2 no-underline">
+      <img src="./logo.jpg" alt="锦绣AI" class="w-7 h-7 rounded object-cover">
+      <span class="font-bold text-base text-gray-900 tracking-tight">锦绣AI</span>
+    </a>
+    <div class="hidden md:flex items-center gap-7 ml-8">
+      <a href="./index.html" class="text-sm text-gray-500 hover:text-gray-900 transition-colors">首页</a>
+      <a href="./prices.html" class="text-sm text-gray-500 hover:text-gray-900 transition-colors">价格</a>
+      <a href="./docs.html" class="text-sm text-gray-500 hover:text-gray-900 transition-colors">文档</a>
+      <a href="./about.html" class="text-sm text-gray-500 hover:text-gray-900 transition-colors">关于</a>
+      <a href="./chat.html" class="text-sm text-gray-500 hover:text-gray-900 transition-colors">在线对话</a>
+    </div>
+    <div class="ml-auto flex items-center gap-4">
+      <a href="./login.html" class="text-sm text-gray-900 font-medium">登录</a>
+      <a href="./register.html" class="text-sm text-gray-500 hover:text-gray-900 transition-colors">注册</a>
+    </div>
+  </div>
+</nav>
+
+<div class="w-full max-w-md">
+  <div class="text-center mb-8">
+    <a href="index.html" class="inline-flex items-center gap-2.5 no-underline">
+      <img src="./logo.jpg" alt="锦绣AI" class="w-10 h-10 rounded-xl object-cover">
+      <span class="font-bold text-2xl text-brand">锦绣AI</span>
+    </a>
+    <p class="text-gray-500 mt-2">欢迎回来</p>
+  </div>
+
+  <div class="bg-white rounded-2xl border border-gray-200 p-8 shadow-sm">
+    <h2 class="text-xl font-bold text-gray-900 mb-6">登录</h2>
+
+    <form onsubmit="handleLogin(event)" class="space-y-5">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1.5">账号</label>
+        <input type="text" id="username" required placeholder="admin"
+          class="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-brand-light focus:border-brand outline-none transition-all"
+          value="admin">
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1.5">密码</label>
+        <input type="password" id="password" required placeholder="admin"
+          class="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-brand-light focus:border-brand outline-none transition-all"
+          value="admin">
+      </div>
+
+      <p id="loginError" class="hidden text-red-500 text-sm"></p>
+
+      <button type="submit"
+        class="w-full bg-brand hover:bg-brand-light text-white py-3 rounded-xl font-semibold text-sm transition-all shadow-sm hover:shadow-md">
+        登录
+      </button>
+    </form>
+
+    <div class="mt-6 text-center text-sm text-gray-500">
+      还没有账号？<a href="register.html" class="text-brand hover:text-brand-light font-medium ml-1">免费注册</a>
+    </div>
+  </div>
+
+  <!-- 登录结果提示 -->
+  <div id="loginToast" class="hidden mt-4 bg-accent text-white rounded-xl p-4 text-center text-sm font-medium shadow-lg">
+    登录成功！正在跳转到控制台...
+  </div>
+</div>
+
+<script>
+function handleLogin(e) {
+  e.preventDefault();
+  var username = document.getElementById('username').value.trim();
+  var password = document.getElementById('password').value;
+  var error = document.getElementById('loginError');
+
+  if (username === 'admin' && password === 'admin') {
+    var toast = document.getElementById('loginToast');
+    error.classList.add('hidden');
+    toast.classList.remove('hidden');
+    setTimeout(function() {
+      window.location.href = 'dashboard.html';
+    }, 800);
+  } else {
+    error.textContent = '账号或密码错误（提示：admin / admin）';
+    error.classList.remove('hidden');
+  }
+}
+</script>
+
+</body>
+</html>

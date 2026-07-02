@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <base href="/jinxiuai-prototype/">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>注册 — 锦绣AI</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={theme:{extend:{colors:{brand:{DEFAULT:'#1F4E79',light:'#2E75B6'},accent:'#10B981'}}}}</script>
+<style>body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft YaHei',sans-serif;}</style>
+</head>
+<body class="min-h-screen bg-gray-50 flex flex-col items-center pt-20 px-6 pb-12">
+<!-- 顶部导航栏：透明背景，无边框，5 菜单 + 登录注册 -->
+<!-- 顶部导航栏：透明背景，无边框，5 菜单 + 登录注册 -->
+<nav class="fixed top-0 w-full bg-transparent z-50">
+  <div class="max-w-6xl mx-auto px-6 h-14 flex items-center">
+    <a href="./index.html" class="flex items-center gap-2 no-underline">
+      <img src="./logo.jpg" alt="锦绣AI" class="w-7 h-7 rounded object-cover">
+      <span class="font-bold text-base text-gray-900 tracking-tight">锦绣AI</span>
+    </a>
+    <div class="hidden md:flex items-center gap-7 ml-8">
+      <a href="./index.html" class="text-sm text-gray-500 hover:text-gray-900 transition-colors">首页</a>
+      <a href="./prices.html" class="text-sm text-gray-500 hover:text-gray-900 transition-colors">价格</a>
+      <a href="./docs.html" class="text-sm text-gray-500 hover:text-gray-900 transition-colors">文档</a>
+      <a href="./about.html" class="text-sm text-gray-500 hover:text-gray-900 transition-colors">关于</a>
+      <a href="./chat.html" class="text-sm text-gray-500 hover:text-gray-900 transition-colors">在线对话</a>
+    </div>
+    <div class="ml-auto flex items-center gap-4">
+      <a href="./login.html" class="text-sm text-gray-500 hover:text-gray-900 transition-colors">登录</a>
+      <a href="./register.html" class="bg-[#0D0D0D] text-white px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-[#2a2a2a] transition-colors">注册</a>
+    </div>
+  </div>
+</nav>
+
+<div class="w-full max-w-md">
+  <!-- Logo -->
+  <div class="text-center mb-8">
+    <a href="index.html" class="inline-flex items-center gap-2.5 no-underline">
+      <img src="./logo.jpg" alt="锦绣AI" class="w-10 h-10 rounded-xl object-cover">
+      <span class="font-bold text-2xl text-brand">锦绣AI</span>
+    </a>
+    <p class="text-gray-500 mt-2">免费注册，即刻获得 <span class="text-accent font-semibold">5 元</span> API 调用额度</p>
+  </div>
+
+  <!-- 注册表单 -->
+  <div class="bg-white rounded-2xl border border-gray-200 p-8 shadow-sm">
+    <h2 class="text-xl font-bold text-gray-900 mb-6">创建账号</h2>
+
+    <form onsubmit="handleRegister(event)" class="space-y-5">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1.5">邮箱地址</label>
+        <input type="email" required placeholder="your@email.com"
+          class="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-brand-light focus:border-brand outline-none transition-all"
+        >
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1.5">密码</label>
+        <input type="password" required placeholder="至少 6 位"
+          class="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-brand-light focus:border-brand outline-none transition-all"
+        >
+      </div>
+
+      <button type="submit"
+        class="w-full bg-brand hover:bg-brand-light text-white py-3 rounded-xl font-semibold text-sm transition-all shadow-sm hover:shadow-md">
+        注册
+      </button>
+    </form>
+
+    <div class="mt-6 text-center text-sm text-gray-500">
+      已有账号？<a href="login.html" class="text-brand hover:text-brand-light font-medium ml-1">登录</a>
+    </div>
+  </div>
+
+  <!-- 注册成功弹窗（模拟） -->
+  <div id="successModal" class="hidden fixed inset-0 bg-black/40 flex items-center justify-center p-6 z-50">
+    <div class="bg-white rounded-2xl p-8 max-w-sm w-full text-center shadow-2xl animate-bounce-in">
+      <div class="w-16 h-16 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-4">
+        <svg class="w-8 h-8 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+      </div>
+      <h3 class="text-xl font-bold text-gray-900 mb-2">注册成功！</h3>
+      <p class="text-gray-500 mb-6">
+        <span class="text-accent font-bold text-lg">5 元</span> 免费额度已到账<br>
+        快去创建你的第一个 API Key 吧
+      </p>
+      <a href="dashboard.html" onclick="closeModal()"
+        class="block w-full bg-brand hover:bg-brand-light text-white py-3 rounded-xl font-semibold text-sm transition-all">
+        进入控制台
+      </a>
+    </div>
+  </div>
+</div>
+
+<script>
+function handleRegister(e) {
+  e.preventDefault();
+  document.getElementById('successModal').classList.remove('hidden');
+}
+function closeModal() {
+  document.getElementById('successModal').classList.add('hidden');
+}
+</script>
+<style>
+  .animate-bounce-in { animation: bounceIn 0.5s cubic-bezier(0.175,0.885,0.32,1.275); }
+  @keyframes bounceIn { from{opacity:0;transform:scale(0.9)} to{opacity:1;transform:scale(1)} }
+</style>
+
+</body>
+</html>

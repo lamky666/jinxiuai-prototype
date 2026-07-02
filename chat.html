@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <base href="/jinxiuai-prototype/">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<title>在线对话 — 锦绣AI</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={theme:{extend:{colors:{brand:{DEFAULT:'#1F4E79',light:'#2E75B6'},accent:'#10B981'}}}}</script>
+<style>
+  body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft YaHei',sans-serif;-webkit-font-smoothing:antialiased;}
+  .scroll-thin::-webkit-scrollbar{width:6px;}
+  .scroll-thin::-webkit-scrollbar-thumb{background:#d1d5db;border-radius:3px;}
+  .scroll-thin::-webkit-scrollbar-track{background:transparent;}
+  .msg-bubble-user{background:#F4F4F5;}
+  .msg-bubble-ai{background:#FFFFFF;border:1px solid #E4E4E7;}
+  .typing-dot{width:6px;height:6px;border-radius:50%;background:#71717a;display:inline-block;animation:typing 1.2s infinite ease-in-out;}
+  .typing-dot:nth-child(2){animation-delay:.2s;}
+  .typing-dot:nth-child(3){animation-delay:.4s;}
+  @keyframes typing{0%,60%,100%{opacity:.3;transform:translateY(0);}30%{opacity:1;transform:translateY(-4px);}}
+  .model-pill[data-active="true"]{background:#0D0D0D;color:#fff;border-color:#0D0D0D;}
+  .model-pill[data-active="false"]:hover{background:#f4f4f5;}
+  /* 思考过程折叠 */
+  details[open] .chev{transform:rotate(90deg);}
+  .chev{transition:transform .2s;}
+  /* 选中代码块 */
+  pre{position:relative;}
+  .copy-btn{position:absolute;top:8px;right:8px;opacity:0;transition:opacity .15s;}
+  pre:hover .copy-btn{opacity:1;}
+</style>
+</head>
+<body class="bg-white text-gray-900 h-screen overflow-hidden">
+
+<div class="flex h-full">
+
+  <!-- ========== 左侧：会话历史侧栏 ========== -->
+  <aside class="hidden md:flex flex-col w-64 bg-[#F9F9F9] border-r border-gray-200 h-full">
+    <!-- 顶部 logo + 新建对话 -->
+    <div class="p-3 border-b border-gray-200 flex items-center gap-2">
+      <a href="./index.html" class="flex items-center gap-2 no-underline">
+        <img src="./logo.jpg" alt="锦绣AI" class="w-7 h-7 rounded object-cover">
+        <span class="font-bold text-base text-gray-900 tracking-tight">锦绣AI</span>
+      </a>
+    </div>
+    <div class="p-3">
+      <button class="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 text-sm font-medium text-gray-900 transition-colors">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+        新建对话
+      </button>
+    </div>
+    <!-- 会话历史 -->
+    <div class="flex-1 overflow-y-auto scroll-thin px-2 pb-3">
+      <div class="text-xs text-gray-400 px-3 py-2 font-medium">今天</div>
+      <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-200/70 text-sm text-gray-900 mb-0.5">
+        <svg class="w-4 h-4 text-gray-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span class="truncate">锦绣AI API 接入方案</span>
+      </a>
+      <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-200/50 text-sm text-gray-700 mb-0.5">
+        <svg class="w-4 h-4 text-gray-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span class="truncate">为什么我的 GPT-4 调用超时？</span>
+      </a>
+      <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-200/50 text-sm text-gray-700 mb-0.5">
+        <svg class="w-4 h-4 text-gray-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span class="truncate">帮我写一个 Python 爬虫</span>
+      </a>
+
+      <div class="text-xs text-gray-400 px-3 py-2 mt-3 font-medium">昨天</div>
+      <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-200/50 text-sm text-gray-700 mb-0.5">
+        <svg class="w-4 h-4 text-gray-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span class="truncate">对比 Claude 3.5 和 GPT-4o</span>
+      </a>
+      <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-200/50 text-sm text-gray-700 mb-0.5">
+        <svg class="w-4 h-4 text-gray-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span class="truncate">翻译这段英文合同</span>
+      </a>
+      <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-200/50 text-sm text-gray-700 mb-0.5">
+        <svg class="w-4 h-4 text-gray-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span class="truncate">Midjourney 提示词模板</span>
+      </a>
+
+      <div class="text-xs text-gray-400 px-3 py-2 mt-3 font-medium">最近 7 天</div>
+      <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-200/50 text-sm text-gray-700 mb-0.5">
+        <svg class="w-4 h-4 text-gray-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span class="truncate">SQL 优化建议</span>
+      </a>
+      <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-200/50 text-sm text-gray-700 mb-0.5">
+        <svg class="w-4 h-4 text-gray-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span class="truncate">解释一下 Transformer 架构</span>
+      </a>
+    </div>
+    <!-- 底部用户区 -->
+    <div class="border-t border-gray-200 p-3">
+      <a href="./dashboard.html" class="flex items-center gap-2 px-2 py-2 rounded-lg hover:bg-gray-200/50 transition-colors">
+        <div class="w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-xs font-semibold">锦</div>
+        <div class="flex-1 min-w-0">
+          <div class="text-sm font-medium text-gray-900 truncate">demo@jinxiu.ai</div>
+          <div class="text-xs text-gray-500">免费版 · 升级</div>
+        </div>
+        <svg class="w-4 h-4 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+      </a>
+    </div>
+  </aside>
+
+  <!-- ========== 中间：主对话区 ========== -->
+  <main class="flex-1 flex flex-col h-full bg-white">
+
+    <!-- 顶部：模型选择 + 参数 -->
+    <header class="flex items-center justify-between px-4 md:px-6 h-14 border-b border-gray-200 flex-shrink-0">
+      <div class="flex items-center gap-2">
+        <!-- 模型选择下拉 -->
+        <div class="relative">
+          <button id="modelBtn" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-gray-100 text-sm font-semibold text-gray-900 transition-colors">
+            <span id="modelLabel">GPT-4o</span>
+            <svg class="w-3.5 h-3.5 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div id="modelMenu" class="hidden absolute left-0 top-full mt-1 w-64 bg-white border border-gray-200 rounded-xl shadow-lg p-1 z-50">
+            <div class="model-pill cursor-pointer px-3 py-2.5 rounded-lg text-sm" data-model="GPT-4o" data-active="true">
+              <div class="font-semibold">GPT-4o</div>
+              <div class="text-xs text-gray-500">OpenAI · 旗舰多模态 · 适合复杂任务</div>
+            </div>
+            <div class="model-pill cursor-pointer px-3 py-2.5 rounded-lg text-sm" data-model="GPT-4o mini" data-active="false">
+              <div class="font-semibold">GPT-4o mini</div>
+              <div class="text-xs text-gray-500">OpenAI · 高速低耗 · 日常对话</div>
+            </div>
+            <div class="model-pill cursor-pointer px-3 py-2.5 rounded-lg text-sm" data-model="Claude 3.5 Sonnet" data-active="false">
+              <div class="font-semibold">Claude 3.5 Sonnet</div>
+              <div class="text-xs text-gray-500">Anthropic · 编程与长文本专家</div>
+            </div>
+            <div class="model-pill cursor-pointer px-3 py-2.5 rounded-lg text-sm" data-model="Claude 3.5 Haiku" data-active="false">
+              <div class="font-semibold">Claude 3.5 Haiku</div>
+              <div class="text-xs text-gray-500">Anthropic · 轻量快速</div>
+            </div>
+            <div class="model-pill cursor-pointer px-3 py-2.5 rounded-lg text-sm" data-model="Gemini 1.5 Pro" data-active="false">
+              <div class="font-semibold">Gemini 1.5 Pro</div>
+              <div class="text-xs text-gray-500">Google · 长上下文 1M tokens</div>
+            </div>
+            <div class="model-pill cursor-pointer px-3 py-2.5 rounded-lg text-sm" data-model="DeepSeek-V3" data-active="false">
+              <div class="font-semibold">DeepSeek-V3</div>
+              <div class="text-xs text-gray-500">国产开源 · 中文能力强 · 性价比高</div>
+            </div>
+            <div class="model-pill cursor-pointer px-3 py-2.5 rounded-lg text-sm" data-model="通义千问 Qwen-Plus" data-active="false">
+              <div class="font-semibold">通义千问 Qwen-Plus</div>
+              <div class="text-xs text-gray-500">阿里 · 中文场景优化</div>
+            </div>
+          </div>
+        </div>
+        <!-- 上下文 Token 余量 -->
+        <div class="hidden md:flex items-center gap-1.5 text-xs text-gray-500">
+          <span class="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
+          <span>上下文 128K · 已用 1.2K</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-1">
+        <!-- 参数设置 -->
+        <button id="paramsBtn" class="p-2 rounded-lg hover:bg-gray-100 text-gray-700 transition-colors" title="参数设置">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </button>
+        <!-- 分享 -->
+        <button class="p-2 rounded-lg hover:bg-gray-100 text-gray-700 transition-colors" title="分享">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98"/></svg>
+        </button>
+        <!-- 菜单：导航回首页/价格/文档 -->
+        <div class="relative">
+          <button id="topMenuBtn" class="p-2 rounded-lg hover:bg-gray-100 text-gray-700 transition-colors" title="菜单">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+          </button>
+          <div id="topMenu" class="hidden absolute right-0 top-full mt-1 w-48 bg-white border border-gray-200 rounded-xl shadow-lg p-1 z-50">
+            <a href="./index.html" class="block px-3 py-2 rounded-lg hover:bg-gray-100 text-sm text-gray-700">首页</a>
+            <a href="./prices.html" class="block px-3 py-2 rounded-lg hover:bg-gray-100 text-sm text-gray-700">价格</a>
+            <a href="./docs.html" class="block px-3 py-2 rounded-lg hover:bg-gray-100 text-sm text-gray-700">文档</a>
+            <a href="./about.html" class="block px-3 py-2 rounded-lg hover:bg-gray-100 text-sm text-gray-700">关于</a>
+            <a href="./dashboard.html" class="block px-3 py-2 rounded-lg hover:bg-gray-100 text-sm text-gray-700">控制台</a>
+            <a href="./docs.html" class="block px-3 py-2 rounded-lg hover:bg-gray-100 text-sm text-gray-700">帮助中心</a>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- 对话流 -->
+    <div id="chatScroll" class="flex-1 overflow-y-auto scroll-thin">
+      <div class="max-w-3xl mx-auto px-4 md:px-6 py-8">
+
+        <!-- AI 欢迎 -->
+        <div class="flex gap-3 mb-8">
+          <div class="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">锦</div>
+          <div class="flex-1 min-w-0">
+            <div class="text-sm font-semibold text-gray-900 mb-2">锦绣AI · GPT-4o</div>
+            <div class="msg-bubble-ai rounded-2xl px-4 py-3 text-sm text-gray-800 leading-relaxed">
+              你好，我是锦绣AI 助手 👋 我已经接入了 GPT-4o、Claude 3.5、Gemini 1.5、DeepSeek、通义千问 等 20+ 模型。<br>
+              在左上角切换模型，<strong>调整 Temperature、Top-P 等参数</strong>，然后直接向我提问即可。
+            </div>
+            <div class="flex items-center gap-2 mt-2 text-xs text-gray-400">
+              <span>2.3K tokens</span><span>·</span><span>1.2s</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 用户消息 -->
+        <div class="flex gap-3 mb-8 justify-end">
+          <div class="flex-1 min-w-0 max-w-[80%]">
+            <div class="msg-bubble-user rounded-2xl px-4 py-3 text-sm text-gray-800 leading-relaxed">
+              帮我用 Python 写一个调用 GPT-4o 的最小示例，要求兼容 OpenAI SDK
+            </div>
+            <div class="text-right text-xs text-gray-400 mt-1">14:32</div>
+          </div>
+          <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">锦</div>
+        </div>
+
+        <!-- AI 回复 + 思考过程折叠 -->
+        <div class="flex gap-3 mb-8">
+          <div class="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">锦</div>
+          <div class="flex-1 min-w-0">
+            <div class="text-sm font-semibold text-gray-900 mb-2">锦绣AI · GPT-4o</div>
+
+            <!-- 思考过程（折叠） -->
+            <details class="mb-3 text-sm">
+              <summary class="cursor-pointer text-gray-500 hover:text-gray-700 flex items-center gap-1.5 select-none">
+                <svg class="chev w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+                <span>已思考 0.8s</span>
+              </summary>
+              <div class="mt-2 pl-4 border-l-2 border-gray-200 text-gray-600 text-xs leading-relaxed">
+                用户需要 ① 兼容 OpenAI SDK ② 最小可运行示例 ③ Python 代码。我应该用 base_url 指向锦绣的中转地址，api_key 用锦绣生成的 key，并给出安装 pip install openai 的前置步骤。
+              </div>
+            </details>
+
+            <div class="msg-bubble-ai rounded-2xl px-4 py-3 text-sm text-gray-800 leading-relaxed">
+              没问题，先安装官方 SDK：
+            </div>
+            <pre class="mt-3 rounded-xl bg-[#0D0D0D] text-gray-100 text-xs leading-relaxed p-4 overflow-x-auto scroll-thin"><button class="copy-btn text-xs text-gray-300 hover:text-white bg-white/10 px-2 py-1 rounded">复制</button><code><span class="text-gray-500"># 1. 安装</span>
+pip install openai
+
+<span class="text-gray-500"># 2. 最小示例</span>
+from openai import OpenAI
+
+client = OpenAI(
+    base_url=<span class="text-emerald-300">"https://api.jinxiu.ai/v1"</span>,  <span class="text-gray-500"># 锦绣中转</span>
+    api_key=<span class="text-emerald-300">"sk-jinxiu-你的key"</span>,
+)
+
+resp = client.chat.completions.create(
+    model=<span class="text-emerald-300">"gpt-4o"</span>,
+    messages=[{<span class="text-sky-300">"role"</span>: <span class="text-emerald-300">"user"</span>, <span class="text-sky-300">"content"</span>: <span class="text-emerald-300">"你好"</span>}],
+)
+<span>print(</span>resp.choices[<span>0</span>].message.content<span>)</span></code></pre>
+            <div class="msg-bubble-ai rounded-2xl px-4 py-3 text-sm text-gray-800 leading-relaxed mt-3">
+              关键点：
+              <ul class="list-disc pl-5 mt-1.5 space-y-0.5">
+                <li><code class="text-xs bg-gray-100 px-1.5 py-0.5 rounded">base_url</code> 指向锦绣的网关，其余代码 <strong>与 OpenAI 官方 SDK 100% 兼容</strong>，无需改业务逻辑；</li>
+                <li>API Key 在 <a href="./dashboard.html" class="text-brand hover:underline">控制台 → API Key</a> 创建；</li>
+                <li>模型名 <code class="text-xs bg-gray-100 px-1.5 py-0.5 rounded">gpt-4o</code> / <code class="text-xs bg-gray-100 px-1.5 py-0.5 rounded">claude-3.5-sonnet</code> 可混用，详见 <a href="./docs.html" class="text-brand hover:underline">API 文档</a>。</li>
+              </ul>
+            </div>
+
+            <!-- 操作按钮 -->
+            <div class="flex items-center gap-1 mt-2 text-gray-400">
+              <button class="p-1.5 rounded hover:bg-gray-100 hover:text-gray-700" title="复制">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              </button>
+              <button class="p-1.5 rounded hover:bg-gray-100 hover:text-gray-700" title="点赞">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+              </button>
+              <button class="p-1.5 rounded hover:bg-gray-100 hover:text-gray-700" title="点踩">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/></svg>
+              </button>
+              <button class="p-1.5 rounded hover:bg-gray-100 hover:text-gray-700" title="重新生成">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+              </button>
+              <span class="text-xs ml-2">2.3K tokens · 1.2s</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 用户消息 2 -->
+        <div class="flex gap-3 mb-8 justify-end">
+          <div class="flex-1 min-w-0 max-w-[80%]">
+            <div class="msg-bubble-user rounded-2xl px-4 py-3 text-sm text-gray-800 leading-relaxed">
+              流式输出怎么写？
+            </div>
+            <div class="text-right text-xs text-gray-400 mt-1">14:33</div>
+          </div>
+          <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">锦</div>
+        </div>
+
+        <!-- AI 正在输入（流式打字中） -->
+        <div class="flex gap-3 mb-4">
+          <div class="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">锦</div>
+          <div class="flex-1 min-w-0">
+            <div class="text-sm font-semibold text-gray-900 mb-2">锦绣AI · GPT-4o</div>
+            <div class="msg-bubble-ai rounded-2xl px-4 py-3 text-sm text-gray-800 leading-relaxed inline-flex items-center gap-1.5">
+              <span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>
+            </div>
+            <div class="text-xs text-gray-400 mt-1.5 flex items-center gap-1.5">
+              <span class="inline-block w-3 h-3 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin"></span>
+              <span>正在生成…</span>
+              <button class="ml-2 px-2 py-0.5 rounded border border-gray-300 hover:bg-gray-100 text-gray-600">停止</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 底部：输入区 -->
+    <div class="border-t border-gray-200 bg-white flex-shrink-0">
+      <div class="max-w-3xl mx-auto px-4 md:px-6 py-4">
+        <!-- 工具条 -->
+        <div class="flex items-center gap-1 mb-2 text-xs text-gray-500">
+          <button class="flex items-center gap-1 px-2 py-1 rounded hover:bg-gray-100 hover:text-gray-700" title="上传文件">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+            <span class="hidden md:inline">附件</span>
+          </button>
+          <button class="flex items-center gap-1 px-2 py-1 rounded hover:bg-gray-100 hover:text-gray-700" title="联网搜索">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+            <span class="hidden md:inline">联网</span>
+          </button>
+          <button class="flex items-center gap-1 px-2 py-1 rounded hover:bg-gray-100 hover:text-gray-700" title="知识库">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+            <span class="hidden md:inline">知识库</span>
+          </button>
+          <div class="ml-auto text-xs text-gray-400">Enter 发送 · Shift+Enter 换行</div>
+        </div>
+
+        <!-- 输入框 -->
+        <div class="relative flex items-end gap-2 border border-gray-300 rounded-2xl focus-within:border-gray-400 transition-colors bg-white">
+          <textarea
+            id="msgInput"
+            rows="1"
+            placeholder="向 GPT-4o 发送消息…"
+            class="flex-1 resize-none bg-transparent px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none max-h-40"
+            oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"
+          ></textarea>
+          <div class="flex items-center gap-1 pr-2 pb-2">
+            <button class="p-1.5 rounded hover:bg-gray-100 text-gray-500" title="语音">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8"/></svg>
+            </button>
+            <button id="sendBtn" class="p-1.5 rounded-lg bg-[#0D0D0D] text-white hover:bg-[#2a2a2a] disabled:opacity-40 disabled:cursor-not-allowed" title="发送">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- 提示 -->
+        <div class="mt-2 text-xs text-gray-400 text-center">
+          AI 生成的内容仅供参考，请核实重要信息 ·
+          <a href="./prices.html" class="hover:text-gray-600">计费规则</a> ·
+          <a href="./docs.html" class="hover:text-gray-600">使用文档</a>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ========== 参数设置抽屉 ========== -->
+<div id="paramsDrawer" class="hidden fixed inset-0 z-50">
+  <div class="absolute inset-0 bg-black/30" onclick="document.getElementById('paramsDrawer').classList.add('hidden')"></div>
+  <div class="absolute right-0 top-0 h-full w-80 bg-white shadow-2xl p-5 overflow-y-auto scroll-thin">
+    <div class="flex items-center justify-between mb-5">
+      <h3 class="text-base font-semibold text-gray-900">参数设置</h3>
+      <button onclick="document.getElementById('paramsDrawer').classList.add('hidden')" class="p-1 rounded hover:bg-gray-100">
+        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <div class="space-y-5">
+      <div>
+        <div class="flex justify-between text-sm mb-1.5">
+          <label class="font-medium text-gray-700">Temperature</label>
+          <span id="tempVal" class="text-brand font-mono">0.7</span>
+        </div>
+        <input id="tempRange" type="range" min="0" max="2" step="0.1" value="0.7" class="w-full accent-brand">
+        <div class="flex justify-between text-xs text-gray-400 mt-1"><span>精确</span><span>创意</span></div>
+      </div>
+
+      <div>
+        <div class="flex justify-between text-sm mb-1.5">
+          <label class="font-medium text-gray-700">Top P</label>
+          <span id="topPVal" class="text-brand font-mono">1.0</span>
+        </div>
+        <input id="topPRange" type="range" min="0" max="1" step="0.05" value="1" class="w-full accent-brand">
+      </div>
+
+      <div>
+        <div class="flex justify-between text-sm mb-1.5">
+          <label class="font-medium text-gray-700">最大 Tokens</label>
+          <span id="maxTokVal" class="text-brand font-mono">4096</span>
+        </div>
+        <input id="maxTokRange" type="range" min="256" max="32768" step="256" value="4096" class="w-full accent-brand">
+      </div>
+
+      <div>
+        <label class="text-sm font-medium text-gray-700 block mb-1.5">系统提示词</label>
+        <textarea rows="3" placeholder="你是一个专业的编程助手，回答要简洁…" class="w-full text-sm border border-gray-300 rounded-lg p-2 focus:outline-none focus:border-brand">你是一个友好且专业的 AI 助手，回答简洁有条理。</textarea>
+      </div>
+
+      <div class="space-y-2 pt-2 border-t border-gray-100">
+        <label class="flex items-center justify-between text-sm text-gray-700">
+          <span>启用流式输出</span>
+          <input type="checkbox" checked class="accent-brand w-4 h-4">
+        </label>
+        <label class="flex items-center justify-between text-sm text-gray-700">
+          <span>联网搜索</span>
+          <input type="checkbox" class="accent-brand w-4 h-4">
+        </label>
+        <label class="flex items-center justify-between text-sm text-gray-700">
+          <span>保存对话历史</span>
+          <input type="checkbox" checked class="accent-brand w-4 h-4">
+        </label>
+      </div>
+
+      <button class="w-full py-2 bg-[#0D0D0D] text-white text-sm rounded-lg hover:bg-[#2a2a2a]">保存为预设</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // 模型下拉
+  const modelBtn = document.getElementById('modelBtn');
+  const modelMenu = document.getElementById('modelMenu');
+  const modelLabel = document.getElementById('modelLabel');
+  modelBtn.onclick = (e) => { e.stopPropagation(); modelMenu.classList.toggle('hidden'); };
+  document.querySelectorAll('.model-pill').forEach(p => {
+    p.onclick = () => {
+      document.querySelectorAll('.model-pill').forEach(x => x.dataset.active = 'false');
+      p.dataset.active = 'true';
+      modelLabel.textContent = p.dataset.model;
+      modelMenu.classList.add('hidden');
+    };
+  });
+
+  // 顶部菜单
+  const topMenuBtn = document.getElementById('topMenuBtn');
+  const topMenu = document.getElementById('topMenu');
+  topMenuBtn.onclick = (e) => { e.stopPropagation(); topMenu.classList.toggle('hidden'); };
+
+  // 参数抽屉
+  document.getElementById('paramsBtn').onclick = () => document.getElementById('paramsDrawer').classList.remove('hidden');
+
+  // 滑块同步数值
+  const bind = (rangeId, valId, fmt = v => v) => {
+    const r = document.getElementById(rangeId), v = document.getElementById(valId);
+    r.oninput = () => v.textContent = fmt(r.value);
+  };
+  bind('tempRange', 'tempVal');
+  bind('topPRange', 'topPVal');
+  bind('maxTokRange', 'maxTokVal', v => Number(v).toLocaleString());
+
+  // 点击外部关闭菜单
+  document.addEventListener('click', () => {
+    modelMenu.classList.add('hidden');
+    topMenu.classList.add('hidden');
+  });
+
+  // 发送按钮（演示用，不做实际逻辑）
+  const input = document.getElementById('msgInput');
+  const sendBtn = document.getElementById('sendBtn');
+  const updateSend = () => sendBtn.disabled = input.value.trim().length === 0;
+  input.oninput = updateSend;
+  sendBtn.onclick = () => {
+    if (!input.value.trim()) return;
+    // 演示：在对话流追加用户消息
+    const scroll = document.getElementById('chatScroll');
+    const container = scroll.querySelector('.max-w-3xl');
+    const div = document.createElement('div');
+    div.className = 'flex gap-3 mb-8 justify-end';
+    div.innerHTML = `
+      <div class="flex-1 min-w-0 max-w-[80%]">
+        <div class="msg-bubble-user rounded-2xl px-4 py-3 text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">${input.value.replace(/</g, '&lt;')}</div>
+        <div class="text-right text-xs text-gray-400 mt-1">刚刚</div>
+      </div>
+      <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">锦</div>
+    `;
+    container.appendChild(div);
+    input.value = ''; input.style.height = 'auto'; updateSend();
+    scroll.scrollTop = scroll.scrollHeight;
+  };
+  input.onkeydown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendBtn.click(); }
+  };
+</script>
+</body>
+</html>

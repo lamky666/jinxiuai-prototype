@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <base href="/jinxiuai-prototype/">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<title>锦绣AI — AI算力中转</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={theme:{extend:{colors:{brand:{DEFAULT:'#1F4E79',light:'#2E75B6'},accent:'#10B981'}}}}</script>
+<style>
+  body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft YaHei',sans-serif;-webkit-font-smoothing:antialiased;}
+  .card-hover{transition: all .25s ease;}
+  .card-hover:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,0,0,.06);}
+  /* Hero 科技感背景 */
+  .hero-bg {
+    position: relative;
+    background: linear-gradient(180deg, #F0F6FB 0%, #FFFFFF 60%);
+    overflow: hidden;
+  }
+  .hero-bg::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at 50% 20%, rgba(46,117,182,0.28) 0%, transparent 55%),
+      radial-gradient(circle at 85% 25%, rgba(16,185,129,0.18) 0%, transparent 45%),
+      radial-gradient(circle at 15% 65%, rgba(31,78,121,0.14) 0%, transparent 40%),
+      radial-gradient(circle at 50% 85%, rgba(46,117,182,0.08) 0%, transparent 35%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .hero-grid { display: none; }
+  .gradient-text {
+    background: linear-gradient(135deg, #1F4E79 0%, #2E75B6 40%, #10B981 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 2px 4px rgba(31,78,121,0.18));
+  }
+  /* 无限横向滚动 */
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+  }
+  .marquee-track {
+    display: flex;
+    width: max-content;
+    animation: marquee 28s linear infinite;
+  }
+  .marquee-track:hover { animation-play-state: paused; }
+  .marquee-mask {
+    -webkit-mask-image: linear-gradient(to right, transparent 0, #000 80px, #000 calc(100% - 80px), transparent 100%);
+            mask-image: linear-gradient(to right, transparent 0, #000 80px, #000 calc(100% - 80px), transparent 100%);
+  }
+  /* 信息卡片：默认就有阴影形成层级，悬停时边框变色 + 阴影加深 */
+  .card-elevated {
+    background-color: #FFFFFF;
+    border: 1px solid #F0F0F0;
+    border-radius: 1rem;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 4px 14px rgba(15, 23, 42, 0.05);
+    transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease;
+  }
+  .card-elevated:hover {
+    border-color: #2E75B6;
+    box-shadow: 0 2px 4px rgba(15, 23, 42, 0.05), 0 12px 32px rgba(46, 117, 182, 0.14);
+  }
+</style>
+</head>
+<body class="bg-white text-gray-900">
+
+<!-- 导航栏：透明背景，无边框，按钮靠左紧跟 logo -->
+<!-- 顶部导航栏：透明背景，无边框，5 菜单 + 登录注册 -->
+<nav class="fixed top-0 w-full bg-transparent z-50">
+  <div class="max-w-6xl mx-auto px-6 h-14 flex items-center">
+    <a href="./index.html" class="flex items-center gap-2 no-underline">
+      <img src="./logo.jpg" alt="锦绣AI" class="w-7 h-7 rounded object-cover">
+      <span class="font-bold text-base text-gray-900 tracking-tight">锦绣AI</span>
+    </a>
+    <div class="hidden md:flex items-center gap-7 ml-8">
+      <a href="./index.html" class="text-sm text-gray-900 font-medium">首页</a>
+      <a href="./prices.html" class="text-sm text-gray-500 hover:text-gray-900 transition-colors">价格</a>
+      <a href="./docs.html" class="text-sm text-gray-500 hover:text-gray-900 transition-colors">文档</a>
+      <a href="./about.html" class="text-sm text-gray-500 hover:text-gray-900 transition-colors">关于</a>
+      <a href="./chat.html" class="text-sm text-gray-500 hover:text-gray-900 transition-colors">在线对话</a>
+    </div>
+    <div class="ml-auto flex items-center gap-4">
+      <a href="./login.html" class="text-sm text-gray-500 hover:text-gray-900 transition-colors">登录</a>
+      <a href="./register.html" class="bg-[#0D0D0D] text-white px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-[#2a2a2a] transition-colors">注册</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero 区 + 已支持的模型：共用同一背景，消除视觉分割线 -->
+<div class="hero-bg">
+<section class="pt-32 pb-20 px-6 text-center">
+  <div class="relative z-10">
+    <p class="text-sm text-gray-500 mb-6 tracking-wide">一套API Key调用多个主流AI模型，真实请求反馈模型，告别&ldquo;降智掺水&rdquo;</p>
+    <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold text-[#0D0D0D] mb-4 tracking-tight leading-tight whitespace-nowrap">
+      不一定最好，但<span class="gradient-text">一定可靠</span>
+    </h1>
+    <p class="text-lg text-gray-500/80 max-w-lg mx-auto mb-10 leading-relaxed whitespace-nowrap">
+      不捆绑、不黑箱、模型可验证
+    </p>
+    <div class="flex items-center justify-center gap-3 flex-wrap">
+      <a href="register.html" class="inline-block bg-[#0D0D0D] hover:bg-[#2a2a2a] text-white px-8 py-3 rounded-xl text-base font-semibold transition-colors">快速接入</a>
+      <a href="docs.html" class="inline-block bg-white/80 backdrop-blur border border-gray-300 text-[#0D0D0D] hover:border-gray-500 hover:bg-white px-8 py-3 rounded-xl text-base font-semibold transition-colors">查看教程</a>
+    </div>
+  </div>
+</section>
+
+<!-- 已支持的模型：无限向左滚动 -->
+<section class="py-14 px-6">
+  <div class="max-w-6xl mx-auto relative z-10">
+    <h2 class="text-2xl md:text-3xl font-bold text-center mb-10">已支持的模型</h2>
+    <div class="marquee-mask overflow-hidden">
+      <div class="marquee-track">
+        <!-- 第 1 组 -->
+        <div class="flex items-center gap-4 pr-4">
+          <button class="flex items-center gap-2.5 px-5 h-12 rounded-full bg-white border border-gray-200 shadow-sm hover:shadow-md hover:border-brand/40 transition-all whitespace-nowrap">
+            <span class="w-7 h-7 rounded-full bg-[#4D6BFE] flex items-center justify-center text-white text-xs font-bold">DS</span>
+            <span class="text-sm font-medium text-gray-800">DeepSeek V3</span>
+          </button>
+          <button class="flex items-center gap-2.5 px-5 h-12 rounded-full bg-white border border-gray-200 shadow-sm hover:shadow-md hover:border-brand/40 transition-all whitespace-nowrap">
+            <span class="w-7 h-7 rounded-full bg-[#10A37F] flex items-center justify-center text-white text-xs font-bold">OAI</span>
+            <span class="text-sm font-medium text-gray-800">GPT-4o</span>
+          </button>
+          <button class="flex items-center gap-2.5 px-5 h-12 rounded-full bg-white border border-gray-200 shadow-sm hover:shadow-md hover:border-brand/40 transition-all whitespace-nowrap">
+            <span class="w-7 h-7 rounded-full bg-[#D97757] flex items-center justify-center text-white text-xs font-bold">C</span>
+            <span class="text-sm font-medium text-gray-800">Claude 3.5 Sonnet</span>
+          </button>
+          <button class="flex items-center gap-2.5 px-5 h-12 rounded-full bg-white border border-gray-200 shadow-sm hover:shadow-md hover:border-brand/40 transition-all whitespace-nowrap">
+            <span class="w-7 h-7 rounded-full bg-white border border-gray-300 flex items-center justify-center">
+              <svg viewBox="0 0 24 24" class="w-4 h-4"><defs><linearGradient id="gemg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#4285F4"/><stop offset="50%" stop-color="#9B72CB"/><stop offset="100%" stop-color="#D96570"/></linearGradient></defs><path fill="url(#gemg)" d="M12 2l2.4 5.4L20 8.5l-4 4 1 5.7L12 15.6 7 18.2l1-5.7-4-4 5.6-1.1z"/></svg>
+            </span>
+            <span class="text-sm font-medium text-gray-800">Gemini 1.5 Pro</span>
+          </button>
+          <button class="flex items-center gap-2.5 px-5 h-12 rounded-full bg-white border border-gray-200 shadow-sm hover:shadow-md hover:border-brand/40 transition-all whitespace-nowrap">
+            <span class="w-7 h-7 rounded-full bg-[#FF6A00] flex items-center justify-center text-white text-xs font-bold">Q</span>
+            <span class="text-sm font-medium text-gray-800">通义千问 Qwen-Max</span>
+          </button>
+          <button class="flex items-center gap-2.5 px-5 h-12 rounded-full bg-white border border-gray-200 shadow-sm hover:shadow-md hover:border-brand/40 transition-all whitespace-nowrap">
+            <span class="w-7 h-7 rounded-full bg-[#3D7FFF] flex items-center justify-center text-white text-xs font-bold">豆</span>
+            <span class="text-sm font-medium text-gray-800">豆包 Doubao-Pro</span>
+          </button>
+          <button class="flex items-center gap-2.5 px-5 h-12 rounded-full bg-white border border-gray-200 shadow-sm hover:shadow-md hover:border-brand/40 transition-all whitespace-nowrap">
+            <span class="w-7 h-7 rounded-full bg-[#0F62FE] flex items-center justify-center text-white text-xs font-bold">文</span>
+            <span class="text-sm font-medium text-gray-800">文心一言 ERNIE-4.0</span>
+          </button>
+          <button class="flex items-center gap-2.5 px-5 h-12 rounded-full bg-white border border-gray-200 shadow-sm hover:shadow-md hover:border-brand/40 transition-all whitespace-nowrap">
+            <span class="w-7 h-7 rounded-full bg-[#1E66F5] flex items-center justify-center text-white text-xs font-bold">Z</span>
+            <span class="text-sm font-medium text-gray-800">智谱 GLM-4</span>
+          </button>
+          <button class="flex items-center gap-2.5 px-5 h-12 rounded-full bg-white border border-gray-200 shadow-sm hover:shadow-md hover:border-brand/40 transition-all whitespace-nowrap">
+            <span class="w-7 h-7 rounded-full bg-[#10A37F] flex items-center justify-center text-white text-xs font-bold">O1</span>
+            <span class="text-sm font-medium text-gray-800">OpenAI o1</span>
+          </button>
+          <button class="flex items-center gap-2.5 px-5 h-12 rounded-full bg-white border border-gray-200 shadow-sm hover:shadow-md hover:border-brand/40 transition-all whitespace-nowrap">
+            <span class="w-7 h-7 rounded-full bg-[#4D6BFE] flex items-center justify-center text-white text-xs font-bold">R1</span>
+            <span class="text-sm font-medium text-gray-800">DeepSeek R1</span>
+          </button>
+        </div>
+        <!-- 第 2 组：无缝循环副本 -->
+        <div class="flex items-center gap-4 pr-4" aria-hidden="true">
+          <button class="flex items-center gap-2.5 px-5 h-12 rounded-full bg-white border border-gray-200 shadow-sm hover:shadow-md hover:border-brand/40 transition-all whitespace-nowrap">
+            <span class="w-7 h-7 rounded-full bg-[#4D6BFE] flex items-center justify-center text-white text-xs font-bold">DS</span>
+            <span class="text-sm font-medium text-gray-800">DeepSeek V3</span>
+          </button>
+          <button class="flex items-center gap-2.5 px-5 h-12 rounded-full bg-white border border-gray-200 shadow-sm hover:shadow-md hover:border-brand/40 transition-all whitespace-nowrap">
+            <span class="w-7 h-7 rounded-full bg-[#10A37F] flex items-center justify-center text-white text-xs font-bold">OAI</span>
+            <span class="text-sm font-medium text-gray-800">GPT-4o</span>
+          </button>
+          <button class="flex items-center gap-2.5 px-5 h-12 rounded-full bg-white border border-gray-200 shadow-sm hover:shadow-md hover:border-brand/40 transition-all whitespace-nowrap">
+            <span class="w-7 h-7 rounded-full bg-[#D97757] flex items-center justify-center text-white text-xs font-bold">C</span>
+            <span class="text-sm font-medium text-gray-800">Claude 3.5 Sonnet</span>
+          </button>
+          <button class="flex items-center gap-2.5 px-5 h-12 rounded-full bg-white border border-gray-200 shadow-sm hover:shadow-md hover:border-brand/40 transition-all whitespace-nowrap">
+            <span class="w-7 h-7 rounded-full bg-white border border-gray-300 flex items-center justify-center">
+              <svg viewBox="0 0 24 24" class="w-4 h-4"><defs><linearGradient id="gemg2" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#4285F4"/><stop offset="50%" stop-color="#9B72CB"/><stop offset="100%" stop-color="#D96570"/></linearGradient></defs><path fill="url(#gemg2)" d="M12 2l2.4 5.4L20 8.5l-4 4 1 5.7L12 15.6 7 18.2l1-5.7-4-4 5.6-1.1z"/></svg>
+            </span>
+            <span class="text-sm font-medium text-gray-800">Gemini 1.5 Pro</span>
+          </button>
+          <button class="flex items-center gap-2.5 px-5 h-12 rounded-full bg-white border border-gray-200 shadow-sm hover:shadow-md hover:border-brand/40 transition-all whitespace-nowrap">
+            <span class="w-7 h-7 rounded-full bg-[#FF6A00] flex items-center justify-center text-white text-xs font-bold">Q</span>
+            <span class="text-sm font-medium text-gray-800">通义千问 Qwen-Max</span>
+          </button>
+          <button class="flex items-center gap-2.5 px-5 h-12 rounded-full bg-white border border-gray-200 shadow-sm hover:shadow-md hover:border-brand/40 transition-all whitespace-nowrap">
+            <span class="w-7 h-7 rounded-full bg-[#3D7FFF] flex items-center justify-center text-white text-xs font-bold">豆</span>
+            <span class="text-sm font-medium text-gray-800">豆包 Doubao-Pro</span>
+          </button>
+          <button class="flex items-center gap-2.5 px-5 h-12 rounded-full bg-white border border-gray-200 shadow-sm hover:shadow-md hover:border-brand/40 transition-all whitespace-nowrap">
+            <span class="w-7 h-7 rounded-full bg-[#0F62FE] flex items-center justify-center text-white text-xs font-bold">文</span>
+            <span class="text-sm font-medium text-gray-800">文心一言 ERNIE-4.0</span>
+          </button>
+          <button class="flex items-center gap-2.5 px-5 h-12 rounded-full bg-white border border-gray-200 shadow-sm hover:shadow-md hover:border-brand/40 transition-all whitespace-nowrap">
+            <span class="w-7 h-7 rounded-full bg-[#1E66F5] flex items-center justify-center text-white text-xs font-bold">Z</span>
+            <span class="text-sm font-medium text-gray-800">智谱 GLM-4</span>
+          </button>
+          <button class="flex items-center gap-2.5 px-5 h-12 rounded-full bg-white border border-gray-200 shadow-sm hover:shadow-md hover:border-brand/40 transition-all whitespace-nowrap">
+            <span class="w-7 h-7 rounded-full bg-[#10A37F] flex items-center justify-center text-white text-xs font-bold">O1</span>
+            <span class="text-sm font-medium text-gray-800">OpenAI o1</span>
+          </button>
+          <button class="flex items-center gap-2.5 px-5 h-12 rounded-full bg-white border border-gray-200 shadow-sm hover:shadow-md hover:border-brand/40 transition-all whitespace-nowrap">
+            <span class="w-7 h-7 rounded-full bg-[#4D6BFE] flex items-center justify-center text-white text-xs font-bold">R1</span>
+            <span class="text-sm font-medium text-gray-800">DeepSeek R1</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+</div>
+
+<!-- 为什么选择我们：3 张信息卡片 -->
+<section class="py-20 px-6 bg-white">
+  <div class="max-w-6xl mx-auto">
+    <h2 class="text-2xl md:text-3xl font-bold text-center mb-3">为什么选择我们</h2>
+    <p class="text-gray-400 text-center mb-14 max-w-2xl mx-auto text-sm leading-relaxed">拒绝暴利，我们选择让用户降低费用门槛，减少试错成本，让更多人能够接入顶尖模型</p>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+      <!-- 卡片 1：对话数据不落盘 -->
+      <div class="card-elevated p-7">
+        <div class="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center mb-5">
+          <svg class="w-6 h-6 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+        </div>
+        <h3 class="font-bold text-lg mb-3">对话数据不落盘</h3>
+        <p class="text-sm text-gray-500 leading-relaxed mb-4">你的 prompt、你的数据、你的对话——只有你和模型知道。我们只记录 Token 用量与费用，不保存任何对话内容，传输链路全程加密，调用结束后即刻销毁。</p>
+        <div class="flex items-center gap-2 text-xs text-gray-400">
+          <span class="w-1.5 h-1.5 bg-accent rounded-full"></span>
+          <span>零存储 · 端到端加密 · GDPR 合规</span>
+        </div>
+      </div>
+      <!-- 卡片 2：OpenAI API 模式快速接入 -->
+      <div class="card-elevated p-7">
+        <div class="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center mb-5">
+          <svg class="w-6 h-6 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+        </div>
+        <h3 class="font-bold text-lg mb-3">OpenAI API 模式快速接入</h3>
+        <p class="text-sm text-gray-500 leading-relaxed mb-4">完全兼容 OpenAI SDK 与请求格式，只需把 base_url 换成锦绣的地址、API Key 替换为你的 Key，即可全量切换。所有现成代码、Agent 框架、Cursor / Cline / ChatBox 客户端零改造直接对接。</p>
+        <div class="flex items-center gap-2 text-xs text-gray-400">
+          <span class="w-1.5 h-1.5 bg-brand rounded-full"></span>
+          <span>一行代码切换 · 兼容所有 OpenAI 生态</span>
+        </div>
+      </div>
+      <!-- 卡片 3：便捷支付充值 -->
+      <div class="card-elevated p-7">
+        <div class="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center mb-5">
+          <svg class="w-6 h-6 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+        </div>
+        <h3 class="font-bold text-lg mb-3">便捷支付充值</h3>
+        <p class="text-sm text-gray-500 leading-relaxed mb-4">支持微信、支付宝、USDT 多种支付方式，1 元起充、实时到账。账户余额按 Token 精确扣费到 0.0001 元，消费明细全量可查，每一分钱花在哪里都清清楚楚。</p>
+        <div class="flex items-center gap-2 text-xs text-gray-400">
+          <span class="w-1.5 h-1.5 bg-amber-500 rounded-full"></span>
+          <span>微信/支付宝/USDT · 1 元起充 · 实时到账</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 常见问题：折叠面板 -->
+<section class="py-20 px-6 bg-white">
+  <div class="max-w-3xl mx-auto">
+    <h2 class="text-2xl md:text-3xl font-bold text-center mb-10">常见问题</h2>
+    <div class="space-y-4">
+      <!-- 问题 1：默认展开 -->
+      <div class="card-elevated overflow-hidden">
+        <button onclick="toggleFaq(this)" class="w-full flex items-center justify-between px-6 py-5 text-left font-medium text-sm md:text-base">
+          <span>锦绣AI 和直接使用官方 API 有什么区别？</span>
+          <svg class="faq-icon w-5 h-5 text-gray-400 transition-transform duration-300" style="transform:rotate(180deg)" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="faq-content px-6 pb-5 text-sm text-gray-500 leading-relaxed">
+          锦绣AI 完全兼容 OpenAI API 接口规范，只需修改 base_url 和 API Key 即可无缝切换。我们提供国内直连、稳定的多渠道调度、更灵活的计费方式以及企业级服务支持。
+        </div>
+      </div>
+      <!-- 问题 2 -->
+      <div class="card-elevated overflow-hidden">
+        <button onclick="toggleFaq(this)" class="w-full flex items-center justify-between px-6 py-5 text-left font-medium text-sm md:text-base">
+          <span>支持哪些 AI 模型？</span>
+          <svg class="faq-icon w-5 h-5 text-gray-400 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="faq-content hidden px-6 pb-5 text-sm text-gray-500 leading-relaxed">
+          已接入 DeepSeek、GPT-4o、Claude、Gemini、通义千问、豆包、文心一言、智谱 GLM、OpenAI o1 等主流模型，并持续根据效果和价格动态上新。
+        </div>
+      </div>
+      <!-- 问题 3 -->
+      <div class="card-elevated overflow-hidden">
+        <button onclick="toggleFaq(this)" class="w-full flex items-center justify-between px-6 py-5 text-left font-medium text-sm md:text-base">
+          <span>如何快速接入？</span>
+          <svg class="faq-icon w-5 h-5 text-gray-400 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="faq-content hidden px-6 pb-5 text-sm text-gray-500 leading-relaxed">
+          注册账号后，在控制台创建一个 API Key，将你的 OpenAI SDK 或客户端的 base_url 替换为锦绣AI 的地址，即可开始调用，整个过程通常在 5 分钟内完成。
+        </div>
+      </div>
+      <!-- 问题 4 -->
+      <div class="card-elevated overflow-hidden">
+        <button onclick="toggleFaq(this)" class="w-full flex items-center justify-between px-6 py-5 text-left font-medium text-sm md:text-base">
+          <span>数据安全性如何保证？</span>
+          <svg class="faq-icon w-5 h-5 text-gray-400 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="faq-content hidden px-6 pb-5 text-sm text-gray-500 leading-relaxed">
+          对话内容不落盘，仅记录 Token 用量与费用；传输链路采用 TLS 加密，调用结束后请求数据即刻销毁。我们同时支持企业私有化合规与审计需求。
+        </div>
+      </div>
+      <!-- 问题 5 -->
+      <div class="card-elevated overflow-hidden">
+        <button onclick="toggleFaq(this)" class="w-full flex items-center justify-between px-6 py-5 text-left font-medium text-sm md:text-base">
+          <span>企业客户有什么专属权益？</span>
+          <svg class="faq-icon w-5 h-5 text-gray-400 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="faq-content hidden px-6 pb-5 text-sm text-gray-500 leading-relaxed">
+          企业客户可享受专属服务经理、弹性限速配额、多项目架构、SLA 保障、优先技术支持、模型效果调优以及灵活的账期与开票方案。
+        </div>
+      </div>
+      <!-- 问题 6 -->
+      <div class="card-elevated overflow-hidden">
+        <button onclick="toggleFaq(this)" class="w-full flex items-center justify-between px-6 py-5 text-left font-medium text-sm md:text-base">
+          <span>支持哪些支付方式？</span>
+          <svg class="faq-icon w-5 h-5 text-gray-400 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="faq-content hidden px-6 pb-5 text-sm text-gray-500 leading-relaxed">
+          支持微信、支付宝、USDT 等主流支付方式，1 元起充，实时到账。企业客户还可申请账期结算与对公转账。
+        </div>
+      </div>
+      <!-- 问题 7 -->
+      <div class="card-elevated overflow-hidden">
+        <button onclick="toggleFaq(this)" class="w-full flex items-center justify-between px-6 py-5 text-left font-medium text-sm md:text-base">
+          <span>服务稳定性如何？</span>
+          <svg class="faq-icon w-5 h-5 text-gray-400 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="faq-content hidden px-6 pb-5 text-sm text-gray-500 leading-relaxed">
+          平台采用官方直连与自动 fallback 机制，单 Key 可稳定支撑高并发调用。企业客户还可获取 SLA 保障与专属监控告警。
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 企业客户服务 -->
+<section class="py-20 px-6 bg-white">
+  <div class="max-w-5xl mx-auto">
+    <h2 class="text-2xl md:text-3xl font-bold text-center mb-3">企业客户服务</h2>
+    <p class="text-gray-400 text-center mb-14 max-w-lg mx-auto text-sm">专属方案、合规保障与长期陪伴，让 AI 算力真正服务于业务增长</p>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+      <div class="bg-[#F8F8F8] rounded-2xl p-8 card-hover">
+        <h3 class="font-bold text-lg mb-2">专属服务支持</h3>
+        <p class="text-sm text-gray-500 mb-4">一对一服务经理，快速响应需求</p>
+        <ul class="space-y-2 text-sm text-gray-500 mb-6">
+          <li class="flex items-start gap-2"><span class="text-accent mt-1 flex-shrink-0">+</span> 7×24 小时优先技术响应</li>
+          <li class="flex items-start gap-2"><span class="text-accent mt-1 flex-shrink-0">+</span> 弹性限速配额与多项目架构</li>
+          <li class="flex items-start gap-2"><span class="text-accent mt-1 flex-shrink-0">+</span> 模型效果调优与接入方案咨询</li>
+        </ul>
+      </div>
+      <div class="bg-[#F8F8F8] rounded-2xl p-8 card-hover">
+        <h3 class="font-bold text-lg mb-2">合规与保障</h3>
+        <p class="text-sm text-gray-500 mb-4">满足企业级安全与合规要求</p>
+        <ul class="space-y-2 text-sm text-gray-500 mb-6">
+          <li class="flex items-start gap-2"><span class="text-accent mt-1 flex-shrink-0">+</span> SLA 保障与稳定性监控告警</li>
+          <li class="flex items-start gap-2"><span class="text-accent mt-1 flex-shrink-0">+</span> 数据隐私与审计合规支持</li>
+          <li class="flex items-start gap-2"><span class="text-accent mt-1 flex-shrink-0">+</span> 灵活账期、对公转账与开票</li>
+        </ul>
+      </div>
+    </div>
+    <div class="mt-10 text-center">
+      <p class="text-sm text-gray-500 mb-3">企业咨询专线</p>
+      <a href="tel:13600449090" class="inline-flex items-center gap-2 text-2xl font-bold text-brand hover:text-brand-light transition-colors">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+        13600449090
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- 页脚 -->
+<footer class="bg-[#0D0D0D] text-gray-400 py-14 px-6">
+  <div class="max-w-6xl mx-auto">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-8 mb-10">
+      <div>
+        <div class="flex items-center gap-2 mb-4">
+          <img src="./logo.jpg" alt="锦绣AI" class="w-6 h-6 rounded object-cover">
+          <span class="font-bold text-white text-sm">锦绣AI</span>
+        </div>
+        <p class="text-xs leading-relaxed">可靠的算力伙伴，提供 AI 基础算力服务</p>
+      </div>
+      <div>
+        <h4 class="text-white font-medium mb-3 text-xs uppercase tracking-wider">产品</h4>
+        <div class="space-y-2 text-xs">
+          <a href="prices.html" class="hover:text-white transition-colors block">实时价格</a>
+          <a href="docs.html" class="hover:text-white transition-colors block">接口文档</a>
+          <a href="docs.html" class="hover:text-white transition-colors block">接口文档</a>
+        </div>
+      </div>
+      <div>
+        <h4 class="text-white font-medium mb-3 text-xs uppercase tracking-wider">支持</h4>
+        <div class="space-y-2 text-xs">
+          <a href="about.html" class="hover:text-white transition-colors block">关于我们</a>
+          <a href="docs.html#faq" class="hover:text-white transition-colors block">常见问题</a>
+        </div>
+      </div>
+      <div>
+        <h4 class="text-white font-medium mb-3 text-xs uppercase tracking-wider">法律</h4>
+        <div class="space-y-2 text-xs">
+          <span class="block">隐私政策</span>
+          <span class="block">服务条款</span>
+          <span class="block">ICP 备案中</span>
+        </div>
+      </div>
+    </div>
+    <div class="border-t border-gray-800 pt-8 text-xs text-center">&copy; 2026 锦绣AI · ICP 备案中 · 算力备案中</div>
+  </div>
+</footer>
+
+<script>
+function toggleFaq(btn) {
+  const item = btn.parentElement;
+  const content = item.querySelector('.faq-content');
+  const icon = item.querySelector('.faq-icon');
+  const isOpen = !content.classList.contains('hidden');
+  // 关闭所有
+  document.querySelectorAll('.faq-content').forEach(el => el.classList.add('hidden'));
+  document.querySelectorAll('.faq-icon').forEach(el => el.style.transform = 'rotate(0deg)');
+  if (!isOpen) {
+    content.classList.remove('hidden');
+    icon.style.transform = 'rotate(180deg)';
+  }
+}
+</script>
+
+</body>
+</html>

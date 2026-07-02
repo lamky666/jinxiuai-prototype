@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <base href="/jinxiuai-prototype/">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>关于我们 — 锦绣AI</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={theme:{extend:{colors:{brand:{DEFAULT:'#1F4E79',light:'#2E75B6',lighter:'#E8EDF3'},accent:'#10B981'}}}}</script>
+<style>body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft YaHei',sans-serif;}</style>
+</head>
+<body class="bg-white text-gray-900 pt-14">
+
+<!-- 顶部导航栏：透明背景，无边框，5 菜单 + 登录注册 -->
+<nav class="fixed top-0 w-full bg-transparent z-50">
+  <div class="max-w-6xl mx-auto px-6 h-14 flex items-center">
+    <a href="./index.html" class="flex items-center gap-2 no-underline">
+      <img src="./logo.jpg" alt="锦绣AI" class="w-7 h-7 rounded object-cover">
+      <span class="font-bold text-base text-gray-900 tracking-tight">锦绣AI</span>
+    </a>
+    <div class="hidden md:flex items-center gap-7 ml-8">
+      <a href="./index.html" class="text-sm text-gray-500 hover:text-gray-900 transition-colors">首页</a>
+      <a href="./prices.html" class="text-sm text-gray-500 hover:text-gray-900 transition-colors">价格</a>
+      <a href="./docs.html" class="text-sm text-gray-500 hover:text-gray-900 transition-colors">文档</a>
+      <a href="./about.html" class="text-sm text-gray-900 font-medium">关于</a>
+      <a href="./chat.html" class="text-sm text-gray-500 hover:text-gray-900 transition-colors">在线对话</a>
+    </div>
+    <div class="ml-auto flex items-center gap-4">
+      <a href="./login.html" class="text-sm text-gray-500 hover:text-gray-900 transition-colors">登录</a>
+      <a href="./register.html" class="bg-[#0D0D0D] text-white px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-[#2a2a2a] transition-colors">注册</a>
+    </div>
+  </div>
+</nav>
+
+<main class="max-w-3xl mx-auto px-6 pt-8 pb-12">
+  <h1 class="text-3xl font-bold text-gray-900 mb-6">关于我们</h1>
+  <p class="text-lg text-gray-500 mb-8 leading-relaxed">锦绣AI 是一个面向中文开发者的 AI 算力中转平台，致力于让每一次 API 调用都透明、可追溯、高性价比。</p>
+
+  <div class="space-y-8">
+    <section>
+      <h2 class="text-xl font-bold text-gray-900 mb-3">我们的定位</h2>
+      <p class="text-gray-500 leading-relaxed">我们不做「黑箱」中转站。通过模型透明溯源、按量实时计费、对话内容不落库三项核心机制，为个人开发者、初创团队和企业提供可信赖的 AI 算力服务。</p>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-gray-900 mb-3">核心原则</h2>
+      <div class="space-y-3">
+        <div class="flex gap-4">
+          <div class="w-8 h-8 bg-brand text-white rounded-lg flex items-center justify-center font-bold text-sm flex-shrink-0">1</div>
+          <div><p class="font-medium text-gray-900">透明</p><p class="text-sm text-gray-500">每次调用返回实际模型、Token 用量和费用，无隐藏扣费。</p></div>
+        </div>
+        <div class="flex gap-4">
+          <div class="w-8 h-8 bg-brand text-white rounded-lg flex items-center justify-center font-bold text-sm flex-shrink-0">2</div>
+          <div><p class="font-medium text-gray-900">可信</p><p class="text-sm text-gray-500">不预收大额套餐，余额随时可查，对话内容不存储。</p></div>
+        </div>
+        <div class="flex gap-4">
+          <div class="w-8 h-8 bg-brand text-white rounded-lg flex items-center justify-center font-bold text-sm flex-shrink-0">3</div>
+          <div><p class="font-medium text-gray-900">高性价比</p><p class="text-sm text-gray-500">对接 DeepSeek、智谱、通义、OpenAI、Anthropic 等渠道，自动路由到最优方案。</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-gray-900 mb-3">合规与隐私</h2>
+      <p class="text-gray-500 leading-relaxed">我们正在办理 ICP 备案与算法备案。平台仅记录 API 调用所需的 Token 用量和费用，不存储用户的对话内容、prompt 或代码。</p>
+    </section>
+  </div>
+</main>
+
+<footer class="bg-gray-900 text-gray-400 py-10 px-6">
+  <div class="max-w-6xl mx-auto text-center text-sm">&copy; 2026 锦绣AI · ICP备案中 · 算法备案中</div>
+</footer>
+
+</body>
+</html>
